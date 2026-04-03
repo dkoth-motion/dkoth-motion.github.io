@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- IMPORTANT: Remove this noindex tag when the site is ready to go public -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>Daniel Koth — Motion Designer</title>
+
+  <!-- Google Fonts: Bebas Neue for the logo wordmark feel, Inter for body/nav -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:      #000000;
+      --off-black:  #0d0d0d;
+      --dark-grey:  #1a1a1a;
+      --mid-grey:   #333333;
+      --dim-text:   #666666;
+      --muted-text: #999999;
+      --white:      #ffffff;
+      --accent:     #ffffff;         /* swap this one hex to change the entire accent colour */
+      --nav-height: 56px;
+      --ease-silk:  cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      /* Custom scrollbar — keeps the dark feel in Chrome/Edge */
+      scrollbar-width: thin;
+      scrollbar-color: var(--mid-grey) var(--black);
+    }
+
+    body::-webkit-scrollbar { width: 4px; }
+    body::-webkit-scrollbar-track { background: var(--black); }
+    body::-webkit-scrollbar-thumb { background: var(--mid-grey); border-radius: 2px; }
+
+    /* ─── Navigation ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: var(--nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      /* Subtle fade at the top so the nav doesn't hard-cut against the page */
+      background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
+    }
+
+    /* After scrolling, lock the nav background so links stay readable */
+    nav.scrolled {
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
+      transition: background 0.4s var(--ease-silk);
+    }
+
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted-text);
+      text-decoration: none;
+      transition: color 0.25s var(--ease-silk);
+      /* Underline on hover — thin and precise, not a blunt default underline */
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 0.5px;
+      background: var(--white);
+      transition: width 0.3s var(--ease-silk);
+    }
+
+    .nav-links a:hover { color: var(--white); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active { color: var(--white); }
+    .nav-links a.active::after { width: 100%; }
+
+    /* ─── Page layout ─── */
+    main {
+      padding-top: calc(var(--nav-height) + 48px);
+      padding-bottom: 120px;
+    }
+
+    /* ─── Gallery Section (one per category) ─── */
+    .gallery-section {
+      margin-bottom: 72px;
+    }
+
+    /* Category label — centred, spaced caps, very light */
+    .section-label {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--dim-text);
+      margin-bottom: 20px;
+      /* A single hairline rule either side — pure CSS, no images */
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 0 40px;
+    }
+
+    .section-label::before,
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 0.5px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* ─── Carousel wrapper ─── */
+    .carousel-wrapper {
+      position: relative;
+    }
+
+    /* The track that actually scrolls */
+    .carousel-track {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;         /* hide scrollbar — we use the arrow buttons */
+      padding: 0 40px;               /* breathing room at each end */
+      /* Peek effect: items bleed off the edge, hinting at scroll */
+    }
+
+    .carousel-track::-webkit-scrollbar { display: none; }
+
+    /* ─── Individual project card ─── */
+    .project-card {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      /* Default card size */
+      width: 320px;
+      aspect-ratio: 16 / 9;
+      background: var(--dark-grey);
+      transition: transform 0.35s var(--ease-silk);
+    }
+
+    /* The featured (first) card in each row is wider — mirrors the reference design */
+    .project-card.featured {
+      width: 560px;
+    }
+
+    /* Portrait cards for motion key art section */
+    .project-card.portrait {
+      aspect-ratio: 2 / 3;
+      width: 200px;
+    }
+
+    .project-card.portrait.featured {
+      width: 300px;
+    }
+
+    /* Thumbnail image fills the card */
+    .project-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s var(--ease-silk), opacity 0.3s;
+    }
+
+    /* Hover state: subtle zoom + reveal overlay */
+    .project-card:hover img {
+      transform: scale(1.04);
+    }
+
+    /* Hover overlay — title appears on hover */
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 50%);
+      opacity: 0;
+      transition: opacity 0.35s var(--ease-silk);
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+    }
+
+    .project-card:hover .card-overlay { opacity: 1; }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+      line-height: 1.4;
+    }
+
+    .card-subtitle {
+      font-size: 10px;
+      color: var(--muted-text);
+      margin-top: 4px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ─── Arrow navigation ─── */
+    .carousel-nav {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .arrow-btn {
+      background: none;
+      border: 0.5px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.5);
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.25s, color 0.25s, transform 0.2s;
+    }
+
+    .arrow-btn:hover {
+      border-color: rgba(255,255,255,0.7);
+      color: var(--white);
+      transform: scale(1.08);
+    }
+
+    .arrow-btn:active { transform: scale(0.95); }
+
+    /* ─── Reel section ─── */
+    #reel {
+      padding: 0 40px;
+      margin-bottom: 72px;
+    }
+
+    .reel-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--dark-grey);
+      overflow: hidden;
+    }
+
+    /* Vimeo iframe fills the container */
+    .reel-container iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+
+    /* ─── Contact / About section ─── */
+    #contact {
+      padding: 80px 40px;
+      max-width: 640px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .contact-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 8vw, 96px);
+      letter-spacing: 0.05em;
+      line-height: 1;
+      margin-bottom: 24px;
+    }
+
+    .contact-bio {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--muted-text);
+      margin-bottom: 40px;
+    }
+
+    .contact-email {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+      border-bottom: 0.5px solid rgba(255,255,255,0.3);
+      padding-bottom: 4px;
+      transition: border-color 0.3s, color 0.3s;
+    }
+
+    .contact-email:hover {
+      color: var(--white);
+      border-color: var(--white);
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      border-top: 0.5px solid rgba(255,255,255,0.06);
+      padding: 28px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    footer span {
+      font-size: 10px;
+      color: var(--dim-text);
+      letter-spacing: 0.1em;
+    }
+
+    /* ─── Placeholder colours for cards without images yet ─── 
+       Remove these once you swap in real thumbnails */
+    .ph-1 { background: #1a1015; }
+    .ph-2 { background: #0f1520; }
+    .ph-3 { background: #180e0e; }
+    .ph-4 { background: #0e1810; }
+    .ph-5 { background: #1a1800; }
+    .ph-6 { background: #10101a; }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- ═══ NAVIGATION ═══ -->
+  <nav id="main-nav">
+    <a href="index.html" class="nav-logo">Daniel Koth</a>
+    <ul class="nav-links">
+      <li><a href="#work" class="active">Work</a></li>
+      <li><a href="#reel">Reel</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- ═══ WORK SECTION ═══ -->
+    <div id="work">
+
+      <!-- ── THEATRICAL / TV ── -->
+      <section class="gallery-section" data-section="theatrical">
+        <h2 class="section-label">Theatrical / TV</h2>
+
+        <div class="carousel-wrapper">
+          <div class="carousel-track" id="track-theatrical">
+
+            <!-- FEATURED card — wider, anchors the left of the row -->
+            <!-- Replace src with your actual thumbnail image path later -->
+            <article class="project-card featured ph-3" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">The Handmaid's Tale</div>
+                  <div class="card-subtitle">Hulu — Trailer</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card ph-1" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Stilt Killing It</div>
+                  <div class="card-subtitle">Paramount+ — Trailer</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card ph-2" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Moonfall</div>
+                  <div class="card-subtitle">Lionsgate — Trailer</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card ph-4" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Project Title</div>
+                  <div class="card-subtitle">Client — Type</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card ph-5" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Project Title</div>
+                  <div class="card-subtitle">Client — Type</div>
+                </div>
+              </div>
+            </article>
+
+          </div><!-- /carousel-track -->
+
+          <div class="carousel-nav">
+            <button class="arrow-btn" onclick="scrollCarousel('track-theatrical', -1)" aria-label="Previous">←</button>
+            <button class="arrow-btn" onclick="scrollCarousel('track-theatrical',  1)" aria-label="Next">→</button>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ── DIGITAL ── -->
+      <section class="gallery-section" data-section="digital">
+        <h2 class="section-label">Digital</h2>
+
+        <div class="carousel-wrapper">
+          <div class="carousel-track" id="track-digital">
+
+            <article class="project-card featured ph-5" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Cage — Massive Talent</div>
+                  <div class="card-subtitle">Digital Campaign</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card ph-2" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Comedy of the Summer</div>
+                  <div class="card-subtitle">Digital Campaign</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card ph-3" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">When He Gets To Me</div>
+                  <div class="card-subtitle">Digital Spot</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card ph-1" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Kick It With Your Bestie</div>
+                  <div class="card-subtitle">Social Campaign</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card ph-6" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Project Title</div>
+                  <div class="card-subtitle">Client — Type</div>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+          <div class="carousel-nav">
+            <button class="arrow-btn" onclick="scrollCarousel('track-digital', -1)" aria-label="Previous">←</button>
+            <button class="arrow-btn" onclick="scrollCarousel('track-digital',  1)" aria-label="Next">→</button>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ── MOTION KEY ART ── -->
+      <section class="gallery-section" data-section="keyart">
+        <h2 class="section-label">Motion Key Art</h2>
+
+        <div class="carousel-wrapper">
+          <!-- Portrait cards for this section — matches the key art poster format -->
+          <div class="carousel-track" id="track-keyart">
+
+            <article class="project-card portrait featured ph-2" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">El Eternauta</div>
+                  <div class="card-subtitle">Netflix — Key Art</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card portrait ph-3" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Wednesday</div>
+                  <div class="card-subtitle">Netflix — Key Art</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card portrait ph-4" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">The Four Seasons</div>
+                  <div class="card-subtitle">Netflix — Key Art</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card portrait ph-1" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Project Title</div>
+                  <div class="card-subtitle">Client — Type</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card portrait ph-5" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Project Title</div>
+                  <div class="card-subtitle">Client — Type</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="project-card portrait ph-6" onclick="window.location='project.html'">
+              <div class="card-overlay">
+                <div>
+                  <div class="card-title">Project Title</div>
+                  <div class="card-subtitle">Client — Type</div>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+          <div class="carousel-nav">
+            <button class="arrow-btn" onclick="scrollCarousel('track-keyart', -1)" aria-label="Previous">←</button>
+            <button class="arrow-btn" onclick="scrollCarousel('track-keyart',  1)" aria-label="Next">→</button>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /#work -->
+
+
+    <!-- ═══ REEL SECTION ═══ -->
+    <section id="reel">
+      <h2 class="section-label" style="padding: 0; margin-bottom: 20px;">Reel</h2>
+
+      <div class="reel-container">
+        <!--
+          REPLACE THE SRC BELOW with your actual Vimeo embed URL.
+          Go to your Vimeo video → Share → Embed → copy the src URL.
+          It will look like: https://player.vimeo.com/video/XXXXXXXXX?...
+          
+          The parameters below:
+          - autoplay=0     → don't autoplay (respectful to visitors)
+          - title=0        → hide Vimeo title overlay
+          - byline=0       → hide your name (you have your own nav)
+          - portrait=0     → hide your Vimeo profile picture
+          - color=ffffff   → white progress bar instead of Vimeo blue
+          - dnt=1          → do not track (privacy-friendly)
+        -->
+        <iframe
+          src="https://player.vimeo.com/video/YOUR_REEL_ID_HERE?title=0&byline=0&portrait=0&color=ffffff&dnt=1"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          title="Daniel Koth — Motion Design Reel">
+        </iframe>
+      </div>
+    </section>
+
+
+    <!-- ═══ CONTACT / ABOUT ═══ -->
+    <section id="contact">
+      <h1 class="contact-name">Daniel Koth</h1>
+      <p class="contact-bio">
+        Motion designer specialising in theatrical and TV campaigns, 
+        digital content, and motion key art. Based in [City].
+        <!-- Replace this paragraph with your actual bio -->
+      </p>
+      <a href="mailto:your@email.com" class="contact-email">your@email.com</a>
+    </section>
+
+  </main>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer>
+    <span>© 2025 Daniel Koth</span>
+    <span>Motion Design</span>
+  </footer>
+
+
+  <!-- ═══ JAVASCRIPT ═══ -->
+  <script>
+
+    // ── Nav: add .scrolled class once user scrolls past the hero ──
+    const nav = document.getElementById('main-nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    }, { passive: true });
+
+
+    // ── Carousel scroll function ──
+    // direction: -1 = left, 1 = right
+    // Scrolls by roughly one card width at a time
+    function scrollCarousel(trackId, direction) {
+      const track = document.getElementById(trackId);
+      if (!track) return;
+
+      // Use the first card's width as the scroll step
+      const card = track.querySelector('.project-card');
+      const step = card ? card.offsetWidth + 4 : 340; // 4 = gap
+
+      track.scrollBy({
+        left: direction * step,
+        behavior: 'smooth'
+      });
+    }
+
+
+    // ── Keyboard arrow navigation ──
+    // Lets the user use ← → keys when a carousel track is focused/hovered
+    document.querySelectorAll('.carousel-track').forEach(track => {
+      track.setAttribute('tabindex', '0'); // make focusable
+      track.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); track.scrollBy({ left: -340, behavior: 'smooth' }); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); track.scrollBy({ left:  340, behavior: 'smooth' }); }
+      });
+    });
+
+
+    // ── Smooth reveal on scroll (Intersection Observer) ──
+    // Cards fade in as they enter the viewport — subtle, not flashy
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+          observer.unobserve(entry.target); // only animate once
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    // Set initial state for animation, then observe
+    document.querySelectorAll('.gallery-section').forEach((section, i) => {
+      section.style.opacity = '0';
+      section.style.transform = 'translateY(24px)';
+      section.style.transition = `opacity 0.7s ease ${i * 0.1}s, transform 0.7s ease ${i * 0.1}s`;
+      observer.observe(section);
+    });
+
+  </script>
+
+</body>
+</html>
